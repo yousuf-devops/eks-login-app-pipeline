@@ -79,9 +79,11 @@ app.get('/', (req, res) => {
     <!DOCTYPE html>
     <html>
     <head>
-      <title>Login</title>
+      <title>Login - Secure Portal</title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
+        
         body {
           font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
           background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -91,89 +93,189 @@ app.get('/', (req, res) => {
           align-items: center;
           padding: 20px;
         }
-        .container {
+        
+        .login-container {
           background: white;
-          padding: 40px;
-          border-radius: 10px;
-          box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+          border-radius: 20px;
+          box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+          overflow: hidden;
+          max-width: 900px;
           width: 100%;
-          max-width: 400px;
+          display: flex;
+          animation: slideIn 0.5s ease;
         }
-        h1 {
-          color: #333;
-          margin-bottom: 30px;
-          text-align: center;
+        
+        @keyframes slideIn {
+          from { opacity: 0; transform: translateY(30px); }
+          to { opacity: 1; transform: translateY(0); }
         }
-        .form-group {
+        
+        .login-left {
+          flex: 1;
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          padding: 60px 40px;
+          color: white;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+        }
+        
+        .login-left h1 {
+          font-size: 2.5rem;
           margin-bottom: 20px;
+          font-weight: 700;
         }
-        label {
+        
+        .login-left p {
+          font-size: 1.1rem;
+          opacity: 0.9;
+          line-height: 1.6;
+        }
+        
+        .login-right {
+          flex: 1;
+          padding: 60px 40px;
+        }
+        
+        .login-header {
+          text-align: center;
+          margin-bottom: 40px;
+        }
+        
+        .login-header h2 {
+          font-size: 2rem;
+          color: #333;
+          margin-bottom: 10px;
+        }
+        
+        .login-header p {
+          color: #666;
+          font-size: 0.95rem;
+        }
+        
+        .form-group {
+          margin-bottom: 25px;
+        }
+        
+        .form-group label {
           display: block;
           margin-bottom: 8px;
-          color: #555;
+          color: #333;
           font-weight: 500;
+          font-size: 0.95rem;
         }
-        input {
+        
+        .form-group input {
           width: 100%;
-          padding: 12px;
-          border: 2px solid #ddd;
-          border-radius: 5px;
-          font-size: 16px;
-          transition: border-color 0.3s;
+          padding: 15px;
+          border: 2px solid #e0e0e0;
+          border-radius: 10px;
+          font-size: 1rem;
+          transition: all 0.3s ease;
         }
-        input:focus {
+        
+        .form-group input:focus {
           outline: none;
           border-color: #667eea;
+          box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
-        button {
+        
+        .btn-login {
           width: 100%;
-          padding: 12px;
+          padding: 15px;
           background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
           color: white;
           border: none;
-          border-radius: 5px;
-          font-size: 16px;
+          border-radius: 10px;
+          font-size: 1.1rem;
           font-weight: 600;
           cursor: pointer;
-          transition: transform 0.2s;
+          transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
-        button:hover {
+        
+        .btn-login:hover {
           transform: translateY(-2px);
+          box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
         }
+        
+        .btn-login:active {
+          transform: translateY(0);
+        }
+        
         .message {
           margin-top: 20px;
           padding: 12px;
-          border-radius: 5px;
+          border-radius: 8px;
           text-align: center;
           display: none;
+          animation: fadeIn 0.3s ease;
         }
-        .error {
+        
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        
+        .message.error {
           background: #fee;
           color: #c33;
-          border: 1px solid #fcc;
+          border-left: 4px solid #c33;
         }
-        .success {
+        
+        .message.success {
           background: #efe;
           color: #3c3;
-          border: 1px solid #cfc;
+          border-left: 4px solid #3c3;
+        }
+        
+        @media (max-width: 768px) {
+          .login-container {
+            flex-direction: column;
+          }
+          
+          .login-left {
+            padding: 40px 30px;
+          }
+          
+          .login-left h1 {
+            font-size: 2rem;
+          }
+          
+          .login-right {
+            padding: 40px 30px;
+          }
         }
       </style>
     </head>
     <body>
-      <div class="container">
-        <h1>🔐 Login</h1>
-        <form id="loginForm">
-          <div class="form-group">
-            <label for="username">Username</label>
-            <input type="text" id="username" name="username" required>
+      <div class="login-container">
+        <div class="login-left">
+          <h1>🚀 Welcome Back!</h1>
+          <p>Login to access your secure dashboard and manage your account with ease. Your data is protected with enterprise-grade security.</p>
+        </div>
+        
+        <div class="login-right">
+          <div class="login-header">
+            <h2>🔐 Sign In</h2>
+            <p>Enter your credentials to continue</p>
           </div>
-          <div class="form-group">
-            <label for="password">Password</label>
-            <input type="password" id="password" name="password" required>
-          </div>
-          <button type="submit">Sign In</button>
-        </form>
-        <div id="message" class="message"></div>
+          
+          <form id="loginForm">
+            <div class="form-group">
+              <label for="username">Username</label>
+              <input type="text" id="username" name="username" placeholder="Enter your username" required>
+            </div>
+            
+            <div class="form-group">
+              <label for="password">Password</label>
+              <input type="password" id="password" name="password" placeholder="Enter your password" required>
+            </div>
+            
+            <button type="submit" class="btn-login">Sign In</button>
+          </form>
+          
+          <div id="message" class="message"></div>
+        </div>
       </div>
 
       <script>
@@ -195,19 +297,19 @@ app.get('/', (req, res) => {
             
             if (response.ok) {
               messageDiv.className = 'message success';
-              messageDiv.textContent = data.message;
+              messageDiv.textContent = '✅ ' + data.message;
               messageDiv.style.display = 'block';
               setTimeout(() => {
                 window.location.href = '/dashboard';
               }, 1000);
             } else {
               messageDiv.className = 'message error';
-              messageDiv.textContent = data.message;
+              messageDiv.textContent = '❌ ' + data.message;
               messageDiv.style.display = 'block';
             }
           } catch (error) {
             messageDiv.className = 'message error';
-            messageDiv.textContent = 'An error occurred. Please try again.';
+            messageDiv.textContent = '❌ An error occurred. Please try again.';
             messageDiv.style.display = 'block';
           }
         });
@@ -270,70 +372,234 @@ app.get('/dashboard', isAuthenticated, (req, res) => {
     <!DOCTYPE html>
     <html>
     <head>
-      <title>Dashboard</title>
+      <title>Dashboard - Secure Portal</title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
+        
         body {
           font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          background: #f5f7fa;
           min-height: 100vh;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          padding: 20px;
         }
-        .container {
-          background: white;
-          padding: 40px;
-          border-radius: 10px;
-          box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-          width: 100%;
-          max-width: 500px;
-        }
-        h1 {
-          color: #333;
-          margin-bottom: 20px;
-          text-align: center;
-        }
-        .user-info {
-          background: #f5f5f5;
-          padding: 20px;
-          border-radius: 5px;
-          margin-bottom: 20px;
-        }
-        .user-info p {
-          margin: 10px 0;
-          color: #555;
-        }
-        .user-info strong {
-          color: #333;
-        }
-        button {
-          width: 100%;
-          padding: 12px;
+        
+        .navbar {
           background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
           color: white;
-          border: none;
-          border-radius: 5px;
-          font-size: 16px;
-          font-weight: 600;
-          cursor: pointer;
-          transition: transform 0.2s;
+          padding: 20px 40px;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
-        button:hover {
-          transform: translateY(-2px);
+        
+        .navbar h1 {
+          font-size: 1.8rem;
+          font-weight: 600;
+        }
+        
+        .navbar .user-info {
+          display: flex;
+          align-items: center;
+          gap: 15px;
+        }
+        
+        .btn-logout {
+          background: rgba(255, 255, 255, 0.2);
+          color: white;
+          border: 2px solid white;
+          padding: 10px 25px;
+          border-radius: 8px;
+          cursor: pointer;
+          font-weight: 600;
+          transition: all 0.3s ease;
+        }
+        
+        .btn-logout:hover {
+          background: white;
+          color: #667eea;
+        }
+        
+        .container {
+          max-width: 1200px;
+          margin: 40px auto;
+          padding: 0 20px;
+        }
+        
+        .welcome-card {
+          background: white;
+          border-radius: 15px;
+          padding: 40px;
+          box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+          margin-bottom: 30px;
+          animation: slideIn 0.5s ease;
+        }
+        
+        @keyframes slideIn {
+          from { opacity: 0; transform: translateY(20px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .welcome-card h2 {
+          color: #333;
+          font-size: 2rem;
+          margin-bottom: 15px;
+        }
+        
+        .welcome-card p {
+          color: #666;
+          font-size: 1.1rem;
+          line-height: 1.6;
+        }
+        
+        .stats-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+          gap: 25px;
+          margin-top: 30px;
+        }
+        
+        .stat-card {
+          background: white;
+          border-radius: 15px;
+          padding: 30px;
+          box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+          transition: transform 0.3s ease, box-shadow 0.3s ease;
+          animation: fadeIn 0.6s ease;
+        }
+        
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        
+        .stat-card:hover {
+          transform: translateY(-5px);
+          box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+        
+        .stat-card .icon {
+          font-size: 3rem;
+          margin-bottom: 15px;
+        }
+        
+        .stat-card h3 {
+          color: #333;
+          font-size: 1.3rem;
+          margin-bottom: 10px;
+        }
+        
+        .stat-card p {
+          color: #666;
+          font-size: 0.95rem;
+        }
+        
+        .user-details {
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          color: white;
+          border-radius: 15px;
+          padding: 30px;
+          margin-top: 30px;
+          animation: slideIn 0.7s ease;
+        }
+        
+        .user-details h3 {
+          font-size: 1.5rem;
+          margin-bottom: 20px;
+        }
+        
+        .user-details .detail-row {
+          display: flex;
+          justify-content: space-between;
+          padding: 12px 0;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .user-details .detail-row:last-child {
+          border-bottom: none;
+        }
+        
+        .user-details .detail-label {
+          font-weight: 600;
+          opacity: 0.9;
+        }
+        
+        .user-details .detail-value {
+          font-weight: 500;
+        }
+        
+        @media (max-width: 768px) {
+          .navbar {
+            flex-direction: column;
+            gap: 15px;
+          }
+          
+          .navbar h1 {
+            font-size: 1.5rem;
+          }
         }
       </style>
     </head>
     <body>
-      <div class="container">
-        <h1>✅ Dashboard</h1>
+      <div class="navbar">
+        <h1>🎯 Dashboard</h1>
         <div class="user-info">
-          <p><strong>Welcome:</strong> ${req.session.username}</p>
-          <p><strong>Email:</strong> ${req.session.email}</p>
-          <p><strong>User ID:</strong> ${req.session.userId}</p>
+          <span>Welcome, <strong>${req.session.username}</strong></span>
+          <button class="btn-logout" onclick="logout()">Logout</button>
         </div>
-        <button onclick="logout()">Logout</button>
+      </div>
+      
+      <div class="container">
+        <div class="welcome-card">
+          <h2>✨ Welcome to Your Dashboard!</h2>
+          <p>You've successfully logged in. Manage your account, view statistics, and access all features from this centralized hub.</p>
+        </div>
+        
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="icon">📊</div>
+            <h3>Analytics</h3>
+            <p>View your performance metrics and insights</p>
+          </div>
+          
+          <div class="stat-card">
+            <div class="icon">⚙️</div>
+            <h3>Settings</h3>
+            <p>Configure your preferences and account</p>
+          </div>
+          
+          <div class="stat-card">
+            <div class="icon">📱</div>
+            <h3>Notifications</h3>
+            <p>Stay updated with latest alerts</p>
+          </div>
+          
+          <div class="stat-card">
+            <div class="icon">🔒</div>
+            <h3>Security</h3>
+            <p>Manage your security settings</p>
+          </div>
+        </div>
+        
+        <div class="user-details">
+          <h3>📋 Account Information</h3>
+          <div class="detail-row">
+            <span class="detail-label">Username:</span>
+            <span class="detail-value">${req.session.username}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Email:</span>
+            <span class="detail-value">${req.session.email}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">User ID:</span>
+            <span class="detail-value">${req.session.userId}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Account Status:</span>
+            <span class="detail-value">✅ Active</span>
+          </div>
+        </div>
       </div>
 
       <script>
@@ -378,3 +644,4 @@ app.get('/health', (req, res) => {
 app.listen(PORT, () => {
   console.log(`✅ Server running on port ${PORT}`);
 });
+EOF
