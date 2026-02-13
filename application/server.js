@@ -62,18 +62,37 @@ app.use(session({
   }
 }));
 
+// Add session debugging middleware
+app.use((req, res, next) => {
+  console.log('Request URL:', req.url);
+  console.log('Session ID:', req.sessionID);
+  console.log('Session data:', req.session);
+  next();
+});
+
 function isAuthenticated(req, res, next) {
-  if (req.session.userId) {
+  console.log('Checking authentication. Session:', req.session);
+  console.log('Session ID:', req.sessionID);
+  console.log('User ID in session:', req.session.userId);
+  
+  if (req.session && req.session.userId) {
     return next();
   }
-  res.redirect('/');
+  
+  // Prevent redirect loop
+  console.log('Not authenticated, redirecting to login');
+  return res.redirect('/');
 }
 
 // LOGIN PAGE - Ultra Modern Design
 app.get('/', (req, res) => {
-  if (req.session.userId) {
+  // Clear any broken session
+  if (req.session && req.session.userId) {
+    console.log('User already logged in, redirecting to dashboard');
     return res.redirect('/dashboard');
   }
+  
+  console.log('Showing login page');
   res.send(`<!DOCTYPE html>
 <html lang="en">
 <head>
