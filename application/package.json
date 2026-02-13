@@ -1,7 +1,7 @@
 {
   "name": "login-app",
   "version": "1.0.0",
-  "description": "Login application with RDS MySQL",
+  "description": "Secure login application with MySQL and HTTPS support",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
@@ -11,5 +11,8 @@
     "mysql2": "^3.6.0",
     "express-session": "^1.17.3",
     "body-parser": "^1.20.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }
