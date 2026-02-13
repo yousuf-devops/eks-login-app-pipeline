@@ -26,7 +26,15 @@ phases:
       - printf '[{"name":"login-app","imageUri":"%s"}]' $REPOSITORY_URI:$IMAGE_TAG > imagedefinitions.json
       - echo Updating Kubernetes deployment...
       - aws eks update-kubeconfig --name eks-app-cluster --region $AWS_DEFAULT_REGION
-      - kubectl set image deployment/login-app login-app=$REPOSITORY_URI:$IMAGE_TAG -n login-app
+      # Update the image tag in deployment.yaml
+      - sed -i "s|image:.*|image:$REPOSITORY_URI:$IMAGE_TAG|g" kubernetes/deployment.yaml
+      # Apply all Kubernetes manifests
+      - kubectl apply -f kubernetes/namespace.yaml
+      - kubectl apply -f kubernetes/serviceaccount.yaml
+      - kubectl apply -f kubernetes/secret-provider-class.yaml
+      - kubectl apply -f kubernetes/deployment.yaml
+      - kubectl apply -f kubernetes/service.yaml
+      - kubectl apply -f kubernetes/ingress.yaml
       - kubectl rollout status deployment/login-app -n login-app
 
 artifacts:
