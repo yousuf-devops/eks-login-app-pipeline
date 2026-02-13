@@ -41,22 +41,27 @@ console.log('✅ Database pool created');
 // HTTPS FIX: Trust proxy for secure cookies
 app.set('trust proxy', 1);
 
+// CRITICAL FIX: bodyParser MUST come BEFORE session!
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
+
 app.use(session({
   secret: 'login-app-secret-key-change-in-production',
   name: 'sessionId',
   resave: false,
   saveUninitialized: false,
   rolling: true,
-  proxy: true,  // ← ADD THIS
+  proxy: true,
   cookie: {
-    secure: false,  // ← CHANGE to false
+    secure: false,
     httpOnly: true,
     maxAge: 24 * 60 * 60 * 1000,
     sameSite: 'lax',
-    path: '/',  // ← ADD THIS
-    domain: undefined  // ← ADD THIS
+    path: '/',
+    domain: undefined
   }
 }));
+
 function isAuthenticated(req, res, next) {
   if (req.session.userId) {
     return next();
@@ -434,7 +439,7 @@ app.get('/', (req, res) => {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ username, password }),
-          credentials: 'include'
+          credentials: 'same-origin'
         });
         
         const data = await response.json();
@@ -459,25 +464,34 @@ app.get('/', (req, res) => {
 });
 
 app.post('/login', async (req, res) => {
+  console.log('Login attempt received:', req.body);
+  
   const { username, password } = req.body;
   
   if (!username || !password) {
+    console.log('Missing credentials');
     return res.status(400).json({ message: 'Username and password required' });
   }
   
   try {
+    console.log('Querying database for user:', username);
     const [rows] = await pool.execute('SELECT * FROM users WHERE username = ?', [username]);
+    console.log('Query result:', rows.length, 'rows found');
     
     if (rows.length === 0) {
+      console.log('User not found');
       return res.status(401).json({ message: 'Invalid username or password' });
     }
     
     const user = rows[0];
+    console.log('User found:', user.username);
     
     if (password !== user.password) {
+      console.log('Wrong password');
       return res.status(401).json({ message: 'Invalid username or password' });
     }
     
+    console.log('Password correct, creating session');
     req.session.regenerate((err) => {
       if (err) {
         console.error('Session regeneration error:', err);
@@ -493,6 +507,7 @@ app.post('/login', async (req, res) => {
           console.error('Session save error:', saveErr);
           return res.status(500).json({ message: 'Login failed. Please try again.' });
         }
+        console.log('Login successful for user:', username);
         res.json({ message: 'Login successful!' });
       });
     });
@@ -502,7 +517,7 @@ app.post('/login', async (req, res) => {
   }
 });
 
-// DASHBOARD - Ultra Modern with Cards
+// DASHBOARD
 app.get('/dashboard', isAuthenticated, (req, res) => {
   res.send(`<!DOCTYPE html>
 <html lang="en">
@@ -511,19 +526,12 @@ app.get('/dashboard', isAuthenticated, (req, res) => {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dashboard - ${req.session.username}</title>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-    
+    * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
       min-height: 100vh;
     }
-    
-    /* Header */
     .header {
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       color: white;
@@ -532,41 +540,7 @@ app.get('/dashboard', isAuthenticated, (req, res) => {
       justify-content: space-between;
       align-items: center;
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-      position: sticky;
-      top: 0;
-      z-index: 100;
     }
-    
-    .header-left {
-      display: flex;
-      align-items: center;
-      gap: 15px;
-    }
-    
-    .header-left h1 {
-      font-size: 1.8em;
-      font-weight: 700;
-    }
-    
-    .user-info {
-      display: flex;
-      align-items: center;
-      gap: 15px;
-    }
-    
-    .avatar {
-      width: 45px;
-      height: 45px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.3em;
-      font-weight: bold;
-      border: 3px solid rgba(255, 255, 255, 0.3);
-    }
-    
     .logout-btn {
       padding: 10px 24px;
       background: rgba(255, 255, 255, 0.2);
@@ -575,308 +549,33 @@ app.get('/dashboard', isAuthenticated, (req, res) => {
       border-radius: 10px;
       cursor: pointer;
       font-weight: 600;
-      transition: all 0.3s ease;
-      font-size: 0.95em;
     }
-    
-    .logout-btn:hover {
-      background: white;
-      color: #667eea;
-      transform: translateY(-2px);
-      box-shadow: 0 4px 15px rgba(255, 255, 255, 0.3);
-    }
-    
-    /* Main Container */
-    .container {
-      max-width: 1400px;
-      margin: 0 auto;
-      padding: 40px 20px;
-    }
-    
-    /* Welcome Section */
-    .welcome-section {
-      background: white;
-      padding: 40px;
-      border-radius: 20px;
-      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
-      margin-bottom: 40px;
-      animation: slideDown 0.6s ease-out;
-    }
-    
-    @keyframes slideDown {
-      from {
-        opacity: 0;
-        transform: translateY(-20px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-    
-    .welcome-section h2 {
+    .logout-btn:hover { background: white; color: #667eea; }
+    .container { max-width: 1400px; margin: 40px auto; padding: 0 20px; }
+    .welcome { background: white; padding: 40px; border-radius: 20px; margin-bottom: 40px; }
+    .welcome h2 {
       font-size: 2.5em;
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
-      margin-bottom: 10px;
-    }
-    
-    .welcome-section p {
-      color: #718096;
-      font-size: 1.15em;
-      line-height: 1.6;
-    }
-    
-    /* Stats Grid */
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 25px;
-      margin-bottom: 40px;
-    }
-    
-    .stat-card {
-      background: white;
-      padding: 35px;
-      border-radius: 20px;
-      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
-      transition: all 0.4s ease;
-      cursor: pointer;
-      position: relative;
-      overflow: hidden;
-      animation: fadeInUp 0.6s ease-out;
-      animation-fill-mode: both;
-    }
-    
-    .stat-card:nth-child(1) { animation-delay: 0.1s; }
-    .stat-card:nth-child(2) { animation-delay: 0.2s; }
-    .stat-card:nth-child(3) { animation-delay: 0.3s; }
-    .stat-card:nth-child(4) { animation-delay: 0.4s; }
-    
-    @keyframes fadeInUp {
-      from {
-        opacity: 0;
-        transform: translateY(30px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-    
-    .stat-card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 5px;
-      background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
-      transform: scaleX(0);
-      transition: transform 0.3s ease;
-    }
-    
-    .stat-card:hover::before {
-      transform: scaleX(1);
-    }
-    
-    .stat-card:hover {
-      transform: translateY(-10px);
-      box-shadow: 0 20px 60px rgba(102, 126, 234, 0.3);
-    }
-    
-    .stat-icon {
-      font-size: 3.5em;
-      margin-bottom: 20px;
-      display: inline-block;
-      animation: float 3s ease-in-out infinite;
-    }
-    
-    @keyframes float {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-10px); }
-    }
-    
-    .stat-card h3 {
-      color: #2d3748;
-      font-size: 1.3em;
-      margin-bottom: 10px;
-      font-weight: 600;
-    }
-    
-    .stat-card p {
-      color: #718096;
-      line-height: 1.5;
-    }
-    
-    /* Info Section */
-    .info-section {
-      background: white;
-      padding: 40px;
-      border-radius: 20px;
-      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
-      animation: fadeInUp 0.8s ease-out;
-    }
-    
-    .info-section h3 {
-      font-size: 1.8em;
-      margin-bottom: 30px;
-      color: #2d3748;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    
-    .info-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 20px;
-    }
-    
-    .info-item {
-      padding: 20px;
-      background: linear-gradient(135deg, #f5f7fa 0%, #e9ecef 100%);
-      border-radius: 12px;
-      border-left: 4px solid #667eea;
-      transition: all 0.3s ease;
-    }
-    
-    .info-item:hover {
-      transform: translateX(5px);
-      box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
-    }
-    
-    .info-label {
-      font-weight: 600;
-      color: #4a5568;
-      margin-bottom: 8px;
-      font-size: 0.9em;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-    
-    .info-value {
-      color: #2d3748;
-      font-size: 1.2em;
-      font-weight: 500;
-    }
-    
-    .status-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-      color: white;
-      padding: 8px 16px;
-      border-radius: 20px;
-      font-weight: 600;
-      font-size: 0.95em;
-    }
-    
-    @media (max-width: 768px) {
-      .header {
-        flex-direction: column;
-        gap: 15px;
-        text-align: center;
-      }
-      .stats-grid {
-        grid-template-columns: 1fr;
-      }
-      .info-grid {
-        grid-template-columns: 1fr;
-      }
     }
   </style>
 </head>
 <body>
   <div class="header">
-    <div class="header-left">
-      <h1>🎯 Dashboard</h1>
-    </div>
-    <div class="user-info">
-      <div class="avatar">${req.session.username.charAt(0).toUpperCase()}</div>
-      <span style="font-weight: 600;">${req.session.username}</span>
-      <button class="logout-btn" onclick="logout()">Logout</button>
-    </div>
+    <h1>🎯 Dashboard</h1>
+    <button class="logout-btn" onclick="logout()">Logout</button>
   </div>
-  
   <div class="container">
-    <div class="welcome-section">
-      <h2>✨ Welcome back, ${req.session.username}!</h2>
-      <p>You're successfully logged in to your secure dashboard. Manage your account, view analytics, and access all features from this centralized hub.</p>
-    </div>
-    
-    <div class="stats-grid">
-      <div class="stat-card">
-        <div class="stat-icon">📊</div>
-        <h3>Analytics</h3>
-        <p>View comprehensive performance metrics and insights</p>
-      </div>
-      
-      <div class="stat-card">
-        <div class="stat-icon">⚙️</div>
-        <h3>Settings</h3>
-        <p>Configure your preferences and account settings</p>
-      </div>
-      
-      <div class="stat-card">
-        <div class="stat-icon">📱</div>
-        <h3>Notifications</h3>
-        <p>Stay updated with real-time alerts and messages</p>
-      </div>
-      
-      <div class="stat-card">
-        <div class="stat-icon">🔒</div>
-        <h3>Security</h3>
-        <p>Manage your security settings and privacy options</p>
-      </div>
-    </div>
-    
-    <div class="info-section">
-      <h3>📋 Account Information</h3>
-      <div class="info-grid">
-        <div class="info-item">
-          <div class="info-label">Username</div>
-          <div class="info-value">${req.session.username}</div>
-        </div>
-        
-        <div class="info-item">
-          <div class="info-label">Email Address</div>
-          <div class="info-value">${req.session.email}</div>
-        </div>
-        
-        <div class="info-item">
-          <div class="info-label">User ID</div>
-          <div class="info-value">#${req.session.userId}</div>
-        </div>
-        
-        <div class="info-item">
-          <div class="info-label">Account Status</div>
-          <div class="info-value">
-            <span class="status-badge">✓ Active</span>
-          </div>
-        </div>
-      </div>
+    <div class="welcome">
+      <h2>✨ Welcome, ${req.session.username}!</h2>
+      <p>User ID: ${req.session.userId} | Email: ${req.session.email}</p>
     </div>
   </div>
-  
   <script>
     async function logout() {
-      if (confirm('Are you sure you want to logout?')) {
-        try {
-          const response = await fetch('/logout', { 
-            method: 'POST',
-            credentials: 'include'
-          });
-          if (response.ok) {
-            window.location.href = '/';
-          }
-        } catch (error) {
-          console.error('Logout error:', error);
-          alert('Logout failed. Please try again.');
-        }
-      }
+      const res = await fetch('/logout', { method: 'POST', credentials: 'same-origin' });
+      if (res.ok) window.location.href = '/';
     }
   </script>
 </body>
