@@ -51,7 +51,7 @@ app.use(session({
   saveUninitialized: false,
   rolling: true,
   cookie: {
-    secure: 'auto',  // HTTPS FIX: Changed to true
+    secure: false,  // HTTPS FIX: Changed to true
     httpOnly: true,
     maxAge: 24 * 60 * 60 * 1000,
     sameSite: 'lax'
