@@ -4,7 +4,7 @@ metadata:
   name: login-app
   namespace: login-app
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: login-app
