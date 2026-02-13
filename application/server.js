@@ -41,23 +41,22 @@ console.log('✅ Database pool created');
 // HTTPS FIX: Trust proxy for secure cookies
 app.set('trust proxy', 1);
 
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(bodyParser.json());
-
 app.use(session({
   secret: 'login-app-secret-key-change-in-production',
   name: 'sessionId',
   resave: false,
   saveUninitialized: false,
   rolling: true,
+  proxy: true,  // ← ADD THIS
   cookie: {
-    secure: false,  // HTTPS FIX: Changed to true
+    secure: false,  // ← CHANGE to false
     httpOnly: true,
     maxAge: 24 * 60 * 60 * 1000,
-    sameSite: 'lax'
+    sameSite: 'lax',
+    path: '/',  // ← ADD THIS
+    domain: undefined  // ← ADD THIS
   }
 }));
-
 function isAuthenticated(req, res, next) {
   if (req.session.userId) {
     return next();
