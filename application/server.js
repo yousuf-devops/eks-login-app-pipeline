@@ -9,7 +9,6 @@ const PORT = 3000;
 
 let pool;
 
-// Read database credentials from files
 const DB_HOST = fs.readFileSync(process.env.DB_HOST || '/secrets/DB_HOST', 'utf8').trim();
 const DB_NAME = fs.readFileSync(process.env.DB_NAME || '/secrets/DB_NAME', 'utf8').trim();
 const DB_USER = fs.readFileSync(process.env.DB_USER || '/secrets/DB_USER', 'utf8').trim();
@@ -69,7 +68,6 @@ app.get('/', (req, res) => {
   if (req.session.userId) {
     return res.redirect('/dashboard');
   }
-
   res.send(`
     <!DOCTYPE html>
     <html>
@@ -79,7 +77,7 @@ app.get('/', (req, res) => {
       <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+          font-family: 'Segoe UI', sans-serif;
           background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
           min-height: 100vh;
           display: flex;
@@ -101,16 +99,12 @@ app.get('/', (req, res) => {
           background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
           padding: 60px 40px;
           color: white;
-          display: flex;
-          flex-direction: column;
-          justify-content: center;
         }
         .login-left h1 { font-size: 2.5rem; margin-bottom: 20px; }
-        .login-left p { font-size: 1.1rem; opacity: 0.9; line-height: 1.6; }
+        .login-left p { font-size: 1.1rem; opacity: 0.9; }
         .login-right { flex: 1; padding: 60px 40px; }
         .login-header { text-align: center; margin-bottom: 40px; }
-        .login-header h2 { font-size: 2rem; color: #333; margin-bottom: 10px; }
-        .login-header p { color: #666; }
+        .login-header h2 { font-size: 2rem; color: #333; }
         .form-group { margin-bottom: 25px; }
         .form-group label { display: block; margin-bottom: 8px; color: #333; font-weight: 500; }
         .form-group input {
@@ -119,7 +113,6 @@ app.get('/', (req, res) => {
           border: 2px solid #e0e0e0;
           border-radius: 10px;
           font-size: 1rem;
-          transition: all 0.3s ease;
         }
         .form-group input:focus {
           outline: none;
@@ -136,7 +129,6 @@ app.get('/', (req, res) => {
           font-size: 1.1rem;
           font-weight: 600;
           cursor: pointer;
-          transition: transform 0.2s ease;
         }
         .btn-login:hover { transform: translateY(-2px); }
         .message {
@@ -146,12 +138,10 @@ app.get('/', (req, res) => {
           text-align: center;
           display: none;
         }
-        .message.error { background: #fee; color: #c33; border-left: 4px solid #c33; }
-        .message.success { background: #efe; color: #3c3; border-left: 4px solid #3c3; }
+        .message.error { background: #fee; color: #c33; }
+        .message.success { background: #efe; color: #3c3; }
         @media (max-width: 768px) {
           .login-container { flex-direction: column; }
-          .login-left { padding: 40px 30px; }
-          .login-right { padding: 40px 30px; }
         }
       </style>
     </head>
@@ -159,21 +149,20 @@ app.get('/', (req, res) => {
       <div class="login-container">
         <div class="login-left">
           <h1>🚀 Welcome Back!</h1>
-          <p>Login to access your secure dashboard and manage your account with ease.</p>
+          <p>Login to access your secure dashboard.</p>
         </div>
         <div class="login-right">
           <div class="login-header">
             <h2>🔐 Sign In</h2>
-            <p>Enter your credentials to continue</p>
           </div>
           <form id="loginForm">
             <div class="form-group">
               <label for="username">Username</label>
-              <input type="text" id="username" name="username" placeholder="Enter your username" required>
+              <input type="text" id="username" name="username" required>
             </div>
             <div class="form-group">
               <label for="password">Password</label>
-              <input type="password" id="password" name="password" placeholder="Enter your password" required>
+              <input type="password" id="password" name="password" required>
             </div>
             <button type="submit" class="btn-login">Sign In</button>
           </form>
@@ -205,7 +194,7 @@ app.get('/', (req, res) => {
             }
           } catch (error) {
             messageDiv.className = 'message error';
-            messageDiv.textContent = '❌ An error occurred. Please try again.';
+            messageDiv.textContent = '❌ Error occurred';
             messageDiv.style.display = 'block';
           }
         });
@@ -218,7 +207,7 @@ app.get('/', (req, res) => {
 app.post('/login', async (req, res) => {
   const { username, password } = req.body;
   if (!username || !password) {
-    return res.status(400).json({ message: 'Username and password are required' });
+    return res.status(400).json({ message: 'Username and password required' });
   }
   try {
     const [rows] = await pool.execute('SELECT * FROM users WHERE username = ?', [username]);
@@ -230,18 +219,12 @@ app.post('/login', async (req, res) => {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
     req.session.regenerate((err) => {
-      if (err) {
-        console.error('Session regeneration error:', err);
-        return res.status(500).json({ message: 'Login failed' });
-      }
+      if (err) return res.status(500).json({ message: 'Login failed' });
       req.session.userId = user.id;
       req.session.username = user.username;
       req.session.email = user.email;
       req.session.save((saveErr) => {
-        if (saveErr) {
-          console.error('Session save error:', saveErr);
-          return res.status(500).json({ message: 'Login failed' });
-        }
+        if (saveErr) return res.status(500).json({ message: 'Login failed' });
         res.json({ message: 'Login successful!' });
       });
     });
@@ -260,7 +243,7 @@ app.get('/dashboard', isAuthenticated, (req, res) => {
       <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+          font-family: 'Segoe UI', sans-serif;
           background: #f5f7fa;
           min-height: 100vh;
         }
@@ -271,7 +254,6 @@ app.get('/dashboard', isAuthenticated, (req, res) => {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
         .navbar h1 { font-size: 1.8rem; }
         .btn-logout {
@@ -292,7 +274,7 @@ app.get('/dashboard', isAuthenticated, (req, res) => {
           box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
           margin-bottom: 30px;
         }
-        .welcome-card h2 { color: #333; font-size: 2rem; margin-bottom: 15px; }
+        .welcome-card h2 { color: #333; font-size: 2rem; }
         .user-details {
           background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
           color: white;
@@ -305,7 +287,6 @@ app.get('/dashboard', isAuthenticated, (req, res) => {
           padding: 12px 0;
           border-bottom: 1px solid rgba(255, 255, 255, 0.2);
         }
-        .detail-row:last-child { border-bottom: none; }
       </style>
     </head>
     <body>
@@ -316,7 +297,6 @@ app.get('/dashboard', isAuthenticated, (req, res) => {
       <div class="container">
         <div class="welcome-card">
           <h2>✨ Welcome, ${req.session.username}!</h2>
-          <p>You've successfully logged in to your dashboard.</p>
         </div>
         <div class="user-details">
           <h3>📋 Account Information</h3>
@@ -336,12 +316,8 @@ app.get('/dashboard', isAuthenticated, (req, res) => {
       </div>
       <script>
         async function logout() {
-          try {
-            const response = await fetch('/logout', { method: 'POST' });
-            if (response.ok) window.location.href = '/';
-          } catch (error) {
-            console.error('Logout error:', error);
-          }
+          const response = await fetch('/logout', { method: 'POST' });
+          if (response.ok) window.location.href = '/';
         }
       </script>
     </body>
@@ -351,10 +327,7 @@ app.get('/dashboard', isAuthenticated, (req, res) => {
 
 app.post('/logout', (req, res) => {
   req.session.destroy((err) => {
-    if (err) {
-      console.error('Logout error:', err);
-      return res.status(500).json({ message: 'Logout failed' });
-    }
+    if (err) return res.status(500).json({ message: 'Logout failed' });
     res.clearCookie('sessionId');
     res.json({ message: 'Logged out successfully' });
   });
