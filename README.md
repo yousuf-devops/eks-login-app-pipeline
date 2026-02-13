@@ -9,3 +9,4 @@ Login application deployed on AWS EKS with:
 ## Structure
 - `kubernetes/` - Kubernetes manifests
 - `application/` - Node.js application code
+# CI/CD Pipeline test - Fri Feb 13 05:14:29 AM UTC 2026
