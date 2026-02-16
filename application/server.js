@@ -68,10 +68,10 @@ app.use((req, res, next) => {
 });
 
 // Read database credentials from secrets
-const DB_HOST = fs.readFileSync('/secrets/DB_HOST', 'utf8').trim();
-const DB_NAME = fs.readFileSync('/secrets/DB_NAME', 'utf8').trim();
-const DB_USER = fs.readFileSync('/secrets/DB_USER', 'utf8').trim();
-const DB_PASSWORD = fs.readFileSync('/secrets/DB_PASSWORD', 'utf8').trim();
+const DB_HOST = fs.readFileSync(process.env.DB_HOST, 'utf8').trim();
+const DB_NAME = fs.readFileSync(process.env.DB_NAME, 'utf8').trim();
+const DB_USER = fs.readFileSync(process.env.DB_USER, 'utf8').trim();
+const DB_PASSWORD = fs.readFileSync(process.env.DB_PASSWORD, 'utf8').trim();
 
 console.log(`Connecting to database: ${DB_HOST}`);
 
