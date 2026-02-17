@@ -1,8 +1,10 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: login-app
+  name: login-app-service
   namespace: login-app
+  labels:
+    app: login-app
 spec:
   selector:
     app: login-app
